@@ -26,8 +26,6 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
-.env
-.env.*
 # Android/IntelliJ
 #
 build/
@@ -41,7 +39,6 @@ local.properties
 node_modules/
 dist/
 html/
-video/
 uploads/
 client-cert.pem
 client-key.pem
