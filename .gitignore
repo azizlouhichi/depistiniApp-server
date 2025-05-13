@@ -41,8 +41,6 @@ local.properties
 node_modules/
 dist/
 html/
-video/
-uploads/
 client-cert.pem
 client-key.pem
 assignment

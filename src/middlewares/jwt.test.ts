@@ -1,9 +1,10 @@
 import { getMockReq, getMockRes } from '@jest-mock/express';
 import { Request } from 'express';
 import { generateToken, verify, verifyToken } from './jwt';
+import type { SignOptions } from 'jsonwebtoken';
 
 const mockPayload = { id: 123, username: 'test_user' };
-const mockOptions = { expiresIn: '1h' };
+const mockOptions = { expiresIn: '1h' as SignOptions['expiresIn']  };
 
 describe('JWT functions', () => {
   beforeEach(() => {

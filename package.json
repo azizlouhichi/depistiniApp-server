@@ -4,6 +4,7 @@
   "description": "",
   "main": "./dist/main.js",
   "scripts": {
+    "build": "tsc",
     "start": "node  ./dist/main.js",
     "copy-files": "copyfiles -u 1 src/**/**/**/*.hbs src/**/json-files/* src/**/json-files/** src/i18n/locales/* src/**/assets/* dist/",
     "tsc": "tsc && npm run copy-files",

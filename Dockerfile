@@ -1,23 +1,24 @@
-# Use Node.js LTS image
-FROM node:18-alpine
+# Étape 1 : Build
+FROM node:18-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy rest of the app
 COPY . .
 
-# Build TypeScript (optional)
 RUN npm run build
 
-# Expose port
+# Étape 2 : Runtime
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
+# Utilise les variables d'environnement si besoin
 EXPOSE 3000
 
-# Start the server
 CMD ["node", "dist/main.js"]
