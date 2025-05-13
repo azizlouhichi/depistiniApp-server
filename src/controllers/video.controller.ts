@@ -45,6 +45,6 @@ export async function getAll() {
   return videos.map(video => ({
     ...video,
     // Use environment variable for base URL
-    videoUrl: `${process.env.BASE_URL}/videos/${path.basename(video.videoUrl)}`
+    videoUrl: `/videos/${path.basename(video.videoUrl)}`
   }));
 }
