@@ -18,13 +18,12 @@ async function bootstrap() {
   const connection = await connectToDatabase();
   // Create a new instance of an Express server by calling createExpressServer function.
   const app = createExpressServer();
-  const PORT = parseInt(process.env.PORT as string) || 3000;
+  const PORT = process.env.PORT || 4000 
 
   // Create an http server instance with the created express application instance and start listening on the specified port/IP address.
-  const server = app.listen(PORT, '0.0.0.0', () => {
-    const addressInfo = server.address() as AddressInfo;
-    console.log(`Server running at http://${addressInfo.address}:${addressInfo.port}`);
-  });
+  const server = app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}`)
+})
 
   // Set up signal trap handlers to gracefully shutdown the server if any of the specified signals are received.
   const signalsTraps: NodeJS.Signals[] = ['SIGTERM', 'SIGINT', 'SIGUSR2'];
