@@ -3,10 +3,10 @@ FROM node:16.17.1
 #workdir
 WORKDIR /core
 
-COPY ["package.json", "package-lock.json", "./"]
+COPY ["package.json", "yarn.lock", "./"]
 
 
-RUN npm install --immutable
+RUN yarn install --immutable
 
 # If you are building your code for production
 # RUN npm install --only=production
@@ -14,7 +14,7 @@ RUN npm install --immutable
 # Bundle app source
 COPY . ./
 # for typescript
-RUN npm run tsc
+RUN yarn tsc
 
 EXPOSE 3000
 CMD node ./dist/server.js
