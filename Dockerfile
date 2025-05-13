@@ -1,20 +1,23 @@
-#light wieght node image
-FROM node:16.17.1
-#workdir
-WORKDIR /core
+# Use Node.js LTS image
+FROM node:18-alpine
 
-COPY ["package.json", "yarn.lock", "./"]
+# Set working directory
+WORKDIR /app
 
+# Copy package files
+COPY package*.json ./
 
-RUN yarn install --immutable
+# Install dependencies
+RUN npm install
 
-# If you are building your code for production
-# RUN npm install --only=production
+# Copy rest of the app
+COPY . .
 
-# Bundle app source
-COPY . ./
-# for typescript
-RUN yarn tsc
+# Build TypeScript (optional)
+RUN npm run build
 
+# Expose port
 EXPOSE 3000
-CMD node ./dist/server.js
+
+# Start the server
+CMD ["node", "dist/main.js"]
