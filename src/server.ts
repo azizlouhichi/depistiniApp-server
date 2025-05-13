@@ -20,7 +20,6 @@ export function createExpressServer() {
   app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     setHeaders: (res) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Content-Type', 'video/mp4');
       res.setHeader('Accept-Ranges', 'bytes');
     }
   }));

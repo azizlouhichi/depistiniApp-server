@@ -1,18 +1,27 @@
-version: '2.4'
+version: '3.8'  # Updated version is recommended
+
 services:
   core:
+    container_name: node_server
     hostname: core
-    env_file:
-      - .env
     build:
       context: .
+    env_file:
+      - .env
+    environment:
+      - UPLOAD_DIR=/app/uploads
+      - BASE_URL=${BASE_URL} 
     ports:
       - '3000:3000'
+    volumes:
+      - ./uploads:/app/uploads  # Ensure file uploads persist and are accessible
     depends_on:
       - redis
+
   redis:
     container_name: redis_container
     image: 'redis:latest'
-    #  ports:
-    #  - "6379:6379"
     hostname: redis
+
+volumes:
+  uploads_volume:

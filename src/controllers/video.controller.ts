@@ -4,37 +4,47 @@ import { v4 as uuidv4 } from 'uuid';
 import { validators } from '../middlewares';
 import { videoService } from '../services';
 
-const UPLOAD_DIR = path.join(__dirname, '..', 'uploads'); // Adjust if needed
+// Use environment variable for upload directory or fallback to local uploads
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
 
 export async function create(videoData: validators.VideoIdValidator) {
   const { title, videoUrl } = videoData;
-  // Make sure the upload directory exists
+
+  // Ensure the uploads directory exists
   if (!fs.existsSync(UPLOAD_DIR)) {
-    fs.mkdirSync(UPLOAD_DIR);
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   }
 
   // Generate a unique filename
   const filename = `${uuidv4()}.mp4`;
   const filePath = path.join(UPLOAD_DIR, filename);
 
-  // Decode base64 and write to disk
-  const buffer = Buffer.from(videoUrl, 'base64');
-  fs.writeFileSync(filePath, buffer);
+  try {
+    // Decode base64 video string
+    const buffer = Buffer.from(videoUrl.split(',')[1] || videoUrl, 'base64');
+    
+    // Write to disk
+    await fs.promises.writeFile(filePath, buffer);
 
-  // Build the video document (matches your schema)
-  const videoDoc = {
-    title,
-    videoUrl: `/uploads/${filename}` // This should match the public URL path
-  };
+    // Store relative path in DB
+    const videoDoc = {
+      title,
+      videoUrl: `/videos/${filename}` // Changed to use the route we'll serve from
+    };
 
-  return await videoService.createOne(videoDoc);
+    return await videoService.createOne(videoDoc);
+  } catch (error) {
+    console.error('Error saving video:', error);
+    throw error;
+  }
 }
 
 export async function getAll() {
   const videos = await videoService.findAll();
-  // Ensure URLs are complete
+
   return videos.map(video => ({
     ...video,
-    videoUrl: `${process.env.BASE_URL || 'http://localhost:3000'}${video.videoUrl}`
+    // Use environment variable for base URL
+    videoUrl: `${process.env.BASE_URL}/videos/${path.basename(video.videoUrl)}`
   }));
 }
