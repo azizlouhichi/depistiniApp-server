@@ -1,51 +1,64 @@
 import express from 'express';
 import { videoController } from '../controllers';
-import fs from 'fs';
-import path from 'path';
+import mongoose from 'mongoose';
+import { ObjectId } from 'mongodb';
 
 export const videoRouter = express.Router();
 
-// Serve video files directly
-videoRouter.get('/:filename', (req, res) => {
-  const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
-  const filePath = path.join(UPLOAD_DIR, req.params.filename);
-  
-  if (fs.existsSync(filePath)) {
-    const stat = fs.statSync(filePath);
-    const fileSize = stat.size;
+// GridFS streaming endpoint
+videoRouter.get('/:id', async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    
+    // Validate ObjectId
+    if (!ObjectId.isValid(fileId)) {
+      return res.status(400).send('Invalid video ID');
+    }
+
+    const gfs = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+      bucketName: 'videos'
+    });
+
+    const files = await gfs.find({ _id: new ObjectId(fileId) }).toArray();
+    
+    if (!files || files.length === 0) {
+      return res.status(404).send('Video not found');
+    }
+
+    const file = files[0];
     const range = req.headers.range;
     
     if (range) {
       // Handle partial content for streaming
       const parts = range.replace(/bytes=/, "").split("-");
       const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize-1;
+      const end = parts[1] ? parseInt(parts[1], 10) : file.length-1;
       
       const chunksize = (end-start)+1;
-      const file = fs.createReadStream(filePath, {start, end});
       const head = {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Content-Range': `bytes ${start}-${end}/${file.length}`,
         'Accept-Ranges': 'bytes',
         'Content-Length': chunksize,
-        'Content-Type': 'video/mp4',
+        'Content-Type': file.contentType,
       };
       
       res.writeHead(206, head);
-      file.pipe(res);
+      gfs.openDownloadStream(file._id, { start, end }).pipe(res);
     } else {
       const head = {
-        'Content-Length': fileSize,
-        'Content-Type': 'video/mp4',
+        'Content-Length': file.length,
+        'Content-Type': file.contentType,
       };
       res.writeHead(200, head);
-      fs.createReadStream(filePath).pipe(res);
+      gfs.openDownloadStream(file._id).pipe(res);
     }
-  } else {
-    res.status(404).send('Video not found');
+  } catch (error) {
+    console.error('Streaming error:', error);
+    res.status(500).send('Error streaming video');
   }
 });
 
-// Existing routes
+// Existing routes (unchanged)
 videoRouter.post('/', async (req, res) => {
   try {
     const { body } = req;
