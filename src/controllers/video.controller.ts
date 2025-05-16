@@ -15,9 +15,21 @@ mongoose.connection.once('open', () => {
 export async function create(videoData: validators.VideoIdValidator) {
   const { title, videoUrl } = videoData;
 
+  if (!videoUrl) {
+    throw new Error('videoUrl is required');
+  }
+
   try {
-    // Decode base64 video string
-    const buffer = Buffer.from(videoUrl.split(',')[1] || videoUrl, 'base64');
+    // Extract the base64 data (handle both with and without data: prefix)
+    const base64Data = videoUrl.includes(',') 
+      ? videoUrl.split(',')[1] 
+      : videoUrl;
+    
+    if (!base64Data) {
+      throw new Error('Invalid videoUrl format');
+    }
+
+    const buffer = Buffer.from(base64Data, 'base64');
     
     // Create upload stream
     const uploadStream = gfs.openUploadStream(`${title}-${Date.now()}.mp4`, {
